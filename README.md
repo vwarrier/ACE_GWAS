@@ -50,7 +50,7 @@ for i in {1..22}; do ./plink --bfile ./Yourdirectory/Yourfilename2_chr${i} --exc
 ./plink --bfile ./Yourdirectory/Yourfilename3 --maf 0.01 --update-name ~/SFARI/liftOverPlink/plinkrecodingfile.txt --hwe 0.000001 --geno 0.05
 ```
 
-
+## Step 3
 Finally, update the Fam file, as this gets messed up in the whole process. To do this, open the fam file of the imputed merged version, and the fam file of the non-imputed version in R.
 
 ```{R}
