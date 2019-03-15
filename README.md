@@ -6,15 +6,17 @@ These are scripts for GenR. GenR contains files that are imputed vcf files. The 
 2. Quality control
 3. GWAS
 
+Please ensure you download Plink2 available here: https://www.cog-genomics.org/plink/2.0/
 
 ## Step 1: VCF to Plink
 
-Let's next convert it to plink binary files keeping only the files we need
+Let's convert VCF files to plink binary files keeping only the files we need
 
 ```{bash}
-for i in {1..22}; do ./plink --vcf ./Yourdirectory/Yourfilenamechr${i}.dose.vcf.gz --make-bed --out ./Yourdirectory/Yourfilename_chr${i}  --const-fid 0; done
+for i in {1..22}; do ./plink2 --vcf ./Yourdirectory/Yourfilenamechr${i}.dose.vcf.gz --make-bed --out ./Yourdirectory/Yourfilename_chr${i}  --const-fid 0; done
 ```
 
+## Step 2: QC
 Let's do some QC. Here, we are removing SNPs with 0.01 < ALT_Freq < 0.99. This will ensure that all our SNPs have a minor allele freq > 0.01. We also want to remove poorly imputed SNPs. We do this by removing SNPs with Rsq < 0.3. Finally, we create a file to that can be passed on to the --extract command in Plink. We will do this in R
 
 ```{R}
@@ -41,17 +43,21 @@ Merge the files, update SNP name, and do QC
 ```{bash}
 for i in {1..22}; do ./plink --bfile ./Yourdirectory/Yourfilename_chr${i} --extract ./Yourdirectory/chr${i}exclude.txt --make-bed --maf 0.05 --geno 0.05 --hwe 0.000001 --out ./Yourdirectory/Yourfilename2_chr${i}; done
       
-./plink --bfile ./Yourdirectory/Yourfilename2_chr22 --merge-list ./Yourdirector/mergelist.txt --make-bed -biallelic-only --out ./Yourdirectory/Yourfilename3
+./plink2 --bfile ./Yourdirectory/Yourfilename2_chr22 --merge-list ./Yourdirector/mergelist.txt --make-bed -biallelic-only --out ./Yourdirectory/Yourfilename3
 
 for i in {1..22}; do ./plink --bfile ./Yourdirectory/Yourfilename2_chr${i} --exclude ./Yourdirectory/Yourfilename3.missnp --make-bed --out ./Yourdirectory/Yourfilename2_v2_chr${i}; done
 
-./plink --bfile ./Yourdirectory/Yourfilename2_v2_chr22 --merge-list 1Mv1mergelist2.txt --make-bed -biallelic-only --out ./Yourdirectory/Yourfilename3
+./plink2 --bfile ./Yourdirectory/Yourfilename2_v2_chr22 --merge-list 1Mv1mergelist2.txt --make-bed -biallelic-only --out ./Yourdirectory/Yourfilename3
 
-./plink --bfile ./Yourdirectory/Yourfilename3 --maf 0.01 --update-name ~/SFARI/liftOverPlink/plinkrecodingfile.txt --hwe 0.000001 --geno 0.05
+./plink2 --bfile ./Yourdirectory/Yourfilename3 --maf 0.01 --update-name ~/SFARI/liftOverPlink/plinkrecodingfile.txt --hwe 0.000001 --geno 0.05
 ```
 
-## Step 3
+## Step 3: Update fam file
+
+* Note this step is dependent on the output of your fam file*
+
 Finally, update the Fam file, as this gets messed up in the whole process. To do this, open the fam file of the imputed merged version, and the fam file of the non-imputed version in R.
+
 
 ```{R}
 library(data.table)
@@ -75,4 +81,18 @@ write.table(merged[,c("oldFID", "oldIID", "newFID", "NewIID")], file = "1Mv1upda
 write.table(filenonimputed[,1:4], file = "updateparents.txt", row.names = F, col.names = F, quote = F)
 write.table(filenonimputed[,c(1,2,5)], file = "updatesex.txt", row.names = F, col.names = F, quote = F)
 write.table(filenonimputed[,c(1,2,6)], file = "updatepheno.txt", row.names = F, col.names = F, quote = F)
+```
+
+
+## Step 4: Running the GWAS
+
+Finally, let's run the GWAS. We need, in addition to the binary files:
+
+1. Pheno file - which contains the FID, IID, and Phenotypes
+2. Covariate file - which contains FID, IID and covariates
+3. Keep file - Which contains FID, IID. This is the list of unrelated individuals of caucasian ancestry that you want to include in the regression.
+
+Please note, the FID and the IID must match what's in the FAM file, the pheno file, the covariate file, and the keep file. 
+```{bash}
+for i in {1..22}; do ./plink2 --bfile ./Yourdirectory/Yourfilename_chr${i} --keep ./Yourdirectory/keepfile --linear --covar./Yourdirectory/yourcovariatefile --pheno ./Yourdirectory/yourphenotypefile --maf 0.05 --geno 0.05 --hwe 0.000001 --out ./Yourdirectory/TraumaGWAS${i}; done
 ```
