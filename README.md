@@ -6,7 +6,7 @@ These are scripts for GenR. GenR contains files that are imputed vcf files. The 
 2. Quality control
 3. GWAS
 
-Please ensure you download Plink2 available here: https://www.cog-genomics.org/plink/2.0/
+Please ensure you download Plink2 available here: https://www.cog-genomics.org/plink/2.0/. All commands are in bash unless mentioned that it is in R. 
 
 ## Step 1: VCF to Plink
 
