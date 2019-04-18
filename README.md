@@ -49,7 +49,7 @@ for i in {1..22}; do ./plink --bfile ./Yourdirectory/Yourfilename2_chr${i} --exc
 
 ./plink2 --bfile ./Yourdirectory/Yourfilename2_v2_chr22 --merge-list 1Mv1mergelist2.txt --make-bed -biallelic-only --out ./Yourdirectory/Yourfilename3
 
-./plink2 --bfile ./Yourdirectory/Yourfilename3 --maf 0.01 --update-name ~/SFARI/liftOverPlink/plinkrecodingfile.txt --hwe 0.000001 --geno 0.05
+./plink2 --bfile ./Yourdirectory/Yourfilename3 --maf 0.01 --update-name ~/filelocation/plinkrecodingfile.txt --hwe 0.000001 --geno 0.05 --make-bed --out ./Yourdirectory/Yourfilename3
 ```
 
 ## Step 3: Update fam file
